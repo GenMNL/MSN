@@ -2,6 +2,7 @@ import torch
 import torch.nn as nn
 from encoder import *
 from decoder import *
+import expansion_penalty as expansion
 
 class MSN(nn.Module):
     def __init__(self, num_points, emb_dim, num_surfaces, device):
@@ -22,8 +23,8 @@ class MSN(nn.Module):
         coarse_output = []
         for k in range(0, self.num_surfaces):
             rand_grid = torch.rand((batchsize, 2, self.num_points//self.num_points), 
-                                   dtype=torch.float32, 
-                                   device=self.device)
+                                    dtype=torch.float32, 
+                                    device=self.device)
             x = features.unsqueeze(dim=2).repeat(1, 1, rand_grid.shape[2])
             x = torch.cat([rand_grid, x], dim=1)
             one_coarse = self.coarse_decoder[k](x)
