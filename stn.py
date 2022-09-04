@@ -5,25 +5,15 @@ import numpy as np
 from module import *
 
 class STNkd(nn.Module):
-    def __init__(self, num_channels, num_points, device):
+    def __init__(self, num_channels, device):
         super(STNkd, self).__init__()
         self.num_channels = num_channels
-        self.num_points = num_points
         self.device = device
 
         self.Conv_ReLU = nn.Sequential(
-            nn.Conv1d(self.num_channels, 64, 1),
-            nn.BatchNorm1d(64),
-            nn.ReLU(),
-            nn.Conv1d(64, 128, 1),
-            nn.BatchNorm1d(128),
-            nn.ReLU(),
-            nn.Conv1d(128, 1024, 1),
-            nn.BatchNorm1d(1024),
-            nn.ReLU()
-        )
-        self.MaxPool = nn.Sequential(
-            MaxPool(1024, self.num_points)
+            SharedMLP(self.num_channels, 64),
+            SharedMLP(64, 128),
+            SharedMLP(128, 1024)
         )
         self.fc = nn.Sequential(
             nn.Linear(1024, 512),
@@ -39,7 +29,7 @@ class STNkd(nn.Module):
         batchsize = input.shape[0]
 
         x = self.Conv_ReLU(input)
-        x = self.MaxPool(x)
+        x, _ = torch.max(x, dim=2)
         x = self.fc(x)
 
         iden = np.eye(self.num_channels).flatten().astype(np.float32)
@@ -52,7 +42,7 @@ class STNkd(nn.Module):
         return out
 
 if __name__ == "__main__":
-    input = torch.randn(10, 3, 10)
-    stn = STNkd(3, 10, "cpu")
+    input = torch.randn(10, 3, 10, device="cuda")
+    stn = STNkd(3, "cuda").to("cuda")
     out = stn(input)
     print(out.shape)

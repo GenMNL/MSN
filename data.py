@@ -1,6 +1,5 @@
 import torch
 from torch.utils.data import Dataset
-from torch.utils.data import dataloader
 import numpy as np
 import open3d as o3d
 import json
@@ -138,21 +137,17 @@ class MakeDataset(Dataset):
         # get tensor from path
         # completion point cloud
         comp_pc = o3d.io.read_point_cloud(data_comp_path)
-        comp_pc_visu = comp_pc # if you want to visualize data, input this to open3d.visualization
         comp_pc = np.asarray(comp_pc.points)
         comp_pc, comp_max, comp_min = self.transform(comp_pc)
         comp_pc = torch.tensor(comp_pc, dtype=torch.float, device=self.device)
 
         # partial point cloud
         partial_pc = o3d.io.read_point_cloud(data_partial_path)
-        partial_pc_visu = partial_pc # if you want to visualize data, input this to open3d.visualization
         partial_pc = np.asarray(partial_pc.points)
         partial_pc, partial_max, partial_min = self.transform(partial_pc)
         partial_pc = torch.tensor(partial_pc, dtype=torch.float, device=self.device)
 
         return comp_pc, partial_pc, comp_max, comp_min, partial_max, partial_min
-        # return comp_pc, partial_pc, comp_pc_visu, partial_pc_visu # use this if you want to visualize point cloud
-        # return data_comp_path , data_partial_path # use this if you want to check in your pc which don't have cuda.
 
     def get_item_from_json(self):
         # read json file
@@ -172,7 +167,7 @@ class MakeDataset(Dataset):
 # ----------------------------------------------------------------------------------------
 
 if __name__ == "__main__":
-    pc_dataset = MakeDataset("./data/BridgeCompletion", "bridge", "train", 4, "cuda")
+    pc_dataset = MakeDataset("../PCN/data/BridgeCompletion", "bridge", "train", 4, "cuda")
     # i = 46000
     i = 2
     print(pc_dataset[0][i].min())

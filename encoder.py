@@ -4,24 +4,23 @@ from module import *
 from stn import *
 
 class Encoder(nn.Module):
-    def __init__(self, num_points, emb_dim, device):
+    def __init__(self, emb_dim, device):
         super(Encoder, self).__init__()
-        self.num_points = num_points
         self.emb_dim = emb_dim
         self.device = device
+        self.to(device=device)
 
-        self.stn3d = STNkd(3, self.num_points, self.device)
+        self.stn3d = STNkd(3, self.device).to(self.device)
         self.MLP1 = nn.Sequential(
             SharedMLP(3, 64),
             SharedMLP(64, 64)
         )
-        self.stn64d = STNkd(64, self.num_points, self.device)
+        self.stn64d = STNkd(64, self.device).to(self.device)
         self.MLP2 = nn.Sequential(
             SharedMLP(64, 64),
             SharedMLP(64, 128),
             SharedMLP(128, 1024)
         )
-        self.MaxPool = MaxPool(1024, self.num_points)
         self.fc = nn.Sequential(
             nn.Linear(1024, self.emb_dim),
             nn.BatchNorm1d(self.emb_dim),
@@ -48,8 +47,7 @@ class Encoder(nn.Module):
         x = self.MLP2(trans_x)
 
         # Max Pooling
-        x = self.MaxPool(x)
-        x = x.view(-1, 1024)
+        x, _ = torch.max(x, dim=2)
 
         # fully convolution
         out = self.fc(x)
@@ -57,8 +55,8 @@ class Encoder(nn.Module):
 
 
 if __name__ == "__main__":
-    x = torch.randn(10, 3, 100)
-    encoder = Encoder(100, 1024, "cpu")
+    x = torch.randn(10, 3, 100, device="cuda")
+    encoder = Encoder(1024, "cuda").to("cuda")
     out = encoder(x)
     print(out.shape)
     print(out)

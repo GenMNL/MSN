@@ -1,4 +1,9 @@
 import torch
 
-grid = torch.FloatTensor(1, 3)
-print(grid.data.uniform_(0, 1))
+tensor1 = torch.randn(1, 3)
+print(tensor1)
+
+tensor2 = torch.randn(1, 3)
+print(tensor2)
+
+print(tensor1 + tensor2)
