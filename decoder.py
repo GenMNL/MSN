@@ -43,6 +43,14 @@ class PointNetResDecoder(nn.Module):
         )
 
     def forward(self, x):
+        """residual decoder
+
+        Args:
+            x (tensor): (B, 4, N)
+
+        Returns:
+            tensor: (B, 3, N)
+        """
 
         point_feature = self.MLP1(x)
 

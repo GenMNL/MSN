@@ -23,6 +23,14 @@ class MSN(nn.Module):
         self.expansion = expansion.expansionPenaltyModule()
 
     def forward(self, x):
+        """main of model
+
+        Args:
+            x (tensor): (B, 3, N)
+
+        Returns:
+            tensor: (B, 3, N)
+        """
         batchsize, _, _ = x.shape
         partial = x
         features = self.encoder(x)
@@ -39,14 +47,14 @@ class MSN(nn.Module):
 
         # coarse output (tensor [b, c, n])
         coarse_output = torch.cat(coarse_output, dim=2)
-        coarse_output = coarse_output.transpose(1, 2).contiguous()
+        coarse_output = coarse_output.transpose(1, 2).contiguous() # [B, N, C]
 
         # get expansion loss
         # mean_mst_dis is the means of points distance. It is used for var of MDS
         dist, _, mean_mst_dis = self.expansion(coarse_output, self.num_output_points//self.num_surfaces, 1.5)
         loss_mst = torch.mean(dist)
 
-        coarse_output = coarse_output.transpose(1, 2).contiguous()
+        coarse_output = coarse_output.transpose(1, 2).contiguous() # [B, C, N]
 
         # get id of input partial points and coarse output poitns
         id_partial = torch.zeros(batchsize, 1, partial.shape[2], device=self.device)
@@ -54,12 +62,12 @@ class MSN(nn.Module):
         id_coarse = torch.ones(batchsize, 1, coarse_output.shape[2], device=self.device)
         x_coarse = torch.cat([coarse_output, id_coarse], dim=1)
         # concatnate partial input points and coarse output points which have identifier index
-        x = torch.cat([x_partial, x_coarse], dim=2) # [batch, 4(xyz+identifier), num_points(partial+coarse)]
+        x = torch.cat([x_partial, x_coarse], dim=2) # [B, 4(xyz+identifier), N(partial+coarse)]
 
         # get index of minimun density sampling
         # the sampling num is equall with num_coarse_points
         MDS_index = MDS_module.minimum_density_sample(x[:, 0:3, :].transpose(1, 2).contiguous(), x_coarse.shape[2], mean_mst_dis) 
-        x = MDS_module.gather_operation(x, MDS_index) # [batch, 4(xyz+identifier), num_points(coarse)]
+        x = MDS_module.gather_operation(x, MDS_index) # [B, 4(xyz+identifier), N(coarse)]
 
         # This is decoder to get fine output
         # the num points of fine and coarse is same, but the accuracy of fine is more than coarse
