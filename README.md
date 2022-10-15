@@ -13,11 +13,16 @@ Please check the section of Compile for detail.
 - pytorch3d 
 - open3d 0.13.0
 ### If you want to use MDS in parallel
-- python 3.8.10
-- cuda 11.3
-- pytorch 1.12.1
-- pytorch3d 
-- open3d 0.13.0
+You should use docker
+#### make docker images
+in MSN dir
+```bash
+docker build . -t cuda10-0
+```
+#### make docker container
+```bash
+docker run --name MSN --gpus all -v [path of MSN in host]:/work -it cuda10-0 /bin/bash
+```
 
 ## Compile
 This code uses extention modules used in [original code](https://github.com/Colin97/MSN-Point-Cloud-Completion).<br>
