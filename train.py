@@ -19,7 +19,8 @@ def train_one_epoch(model, dataloader, alpha, optim):
     # params for loss
     emd_loss = emd.emdModule()
     eps = 0.005
-    iters = 50
+    # iters = 50
+    iters = 30
 
     train_loss = 0.0
     count = 0
@@ -57,7 +58,8 @@ def val_one_epoch(model, dataloader):
     # params for loss
     emd_loss = emd.emdModule()
     eps = 0.004
-    iters = 3000
+    # iters = 3000
+    iters = 100
 
     val_loss = 0.0
     count = 0
@@ -73,7 +75,7 @@ def val_one_epoch(model, dataloader):
             fine = fine.permute(0, 2, 1) # [B, N, 3]
             # get chamfer distance loss
             emd_fine, _ = emd_loss(fine, comp, eps, iters)
-            emd_fine = torch.sqrt(emd_fine).mean(dim=1)
+            emd_fine = torch.sqrt(emd_fine).mean()
 
             val_loss += emd_fine
             count += 1
@@ -161,15 +163,13 @@ if __name__ == "__main__":
         # if val loss is better than best loss, update best loss to val loss
         if val_loss < best_loss:
             best_loss = val_loss
-            torch.save({
-                        'epoch':epoch,
+            torch.save({'epoch':epoch,
                         'model_state_dict':model.state_dict(), 
                         'optimizer_state_dict':optim.state_dict(),
                         'loss':best_loss
                         }, save_best_path)
         # save normal weight 
-        torch.save({
-                    'epoch':epoch,
+        torch.save({'epoch':epoch,
                     'model_state_dict':model.state_dict(),
                     'optimizer_state_dict':optim.state_dict(),
                     'loss':val_loss

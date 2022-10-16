@@ -1,7 +1,7 @@
 # my own setting
 runs/
 result/
-checkout/
+checkpoint/
 *.vtk
 
 # Byte-compiled / optimized / DLL files
