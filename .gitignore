@@ -1,9 +1,8 @@
 # my own setting
-runs
-result
-checkout
+runs/
+result/
+checkout/
 *.vtk
-*.tar
 
 # Byte-compiled / optimized / DLL files
 __pycache__/
