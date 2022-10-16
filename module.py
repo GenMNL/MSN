@@ -43,7 +43,7 @@ def farthest_point_sampling(xyz, num_sumpling):
 
     for i in range(num_sumpling):
         centroids[:, i] = farthest # updating list for centroids
-        centroid = xyz[batch_indicies, :, farthest] # centriud has points cordinate of farthest
+        centroid = xyz[batch_indicies, :, farthest] # centroid has points cordinate of farthest
         centroid = centroid.view(B, C, 1) # reshape for compute distance between centroid and points in xyz
         dist = torch.sum((centroid - xyz)**2, dim=1) # computing distance
         mask = dist < distance # make boolean list
@@ -75,8 +75,18 @@ def index2point_converter(xyz, indices):
     return new_xyz.permute(0, 2, 1)
 # --------------------------------------------------------------------------------------
 
+# --------------------------------------------------------------------------------------
+# modules for random point sampling
+
 if __name__ == "__main__":
-    x = torch.randn(10, 1026, 100)
-    MLP = SharedMLP(1026, 1026)
-    out = MLP(x)
+    # x = torch.randn(10, 1026, 100)
+    # MLP = SharedMLP(1026, 1026)
+    # out = MLP(x)
+    # print(out.shape)
+
+
+    x = torch.randn(10, 4, 20384, device="cuda")
+    idx = farthest_point_sampling(x[:, 0:3, :], 16384)
+    out = index2point_converter(x, idx)
+    print(idx.shape)
     print(out.shape)

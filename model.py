@@ -32,13 +32,13 @@ class MSN(nn.Module):
             tensor: (B, 3, N)
         """
         device = x.device
-        batchsize, _, _ = x.shape
+        B , _, _ = x.shape
         partial = x
         features = self.encoder(x)
 
         coarse_output = []
         for k in range(0, self.num_surfaces):
-            rand_grid = torch.rand((batchsize, 2, self.num_output_points//self.num_surfaces), 
+            rand_grid = torch.rand((B, 2, self.num_output_points//self.num_surfaces), 
                                     dtype=torch.float32, 
                                     device=device)
             x = features.unsqueeze(dim=2).repeat(1, 1, rand_grid.shape[2])
@@ -58,9 +58,9 @@ class MSN(nn.Module):
         coarse_output = coarse_output.transpose(1, 2).contiguous() # [B, C, N]
 
         # get id of input partial points and coarse output poitns
-        id_partial = torch.zeros(batchsize, 1, partial.shape[2], device=device)
+        id_partial = torch.zeros(B, 1, partial.shape[2], device=device)
         x_partial = torch.cat([partial, id_partial], dim=1)
-        id_coarse = torch.ones(batchsize, 1, coarse_output.shape[2], device=device)
+        id_coarse = torch.ones(B, 1, coarse_output.shape[2], device=device)
         x_coarse = torch.cat([coarse_output, id_coarse], dim=1)
         # concatnate partial input points and coarse output points which have identifier index
         x = torch.cat([x_partial, x_coarse], dim=2) # [B, 4(xyz+identifier), N(partial+coarse)]
@@ -74,6 +74,14 @@ class MSN(nn.Module):
         elif self.sampling_method == "FPS":
             FPS_indices = farthest_point_sampling(x[:, 0:3, :], x_coarse.shape[2])
             x = index2point_converter(x, FPS_indices)
+        elif self.sampling_method == "random":
+            random_indices = np.zeros((B, x_coarse.shape[2]))
+            for b in range(B):
+                id = np.arange(x.shape[2])
+                id = np.random.permutation(id)
+                random_indices[b, :] = id[0:x_coarse.shape[2]]
+            random_indices = torch.tensor(random_indices, dtype=int, device=device)
+            x = index2point_converter(x, random_indices)
 
         # This is decoder to get fine output
         # the num points of fine and coarse is same, but the accuracy of fine is more than coarse
@@ -84,9 +92,9 @@ class MSN(nn.Module):
         return coarse_output, fine_output, loss_mst
 
 if __name__ == "__main__":
-    input = torch.randn(10, 3, 1024, device="cuda")
+    input = torch.randn(10, 3, 4000, device="cuda")
 
-    model = MSN(1024, 1024, 16, "cuda").to("cuda")
+    model = MSN(1024, 16384, 32, "random").to("cuda")
 
     coarse_output, fine_output, loss= model(input)
     print(coarse_output.shape)

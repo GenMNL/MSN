@@ -1,5 +1,4 @@
 import argparse
-import torch
 
 # ----------------------------------------------------------------------------------------
 def make_parser():
@@ -10,10 +9,10 @@ def make_parser():
     parser.add_argument("--num_comp", default=16384, type=int)
     parser.add_argument("--num_output_points", default=16384, type=int)
     parser.add_argument("--emb_dim", default=1024, type=int)
-    parser.add_argument("--num_surfaces", default=1024, type=int)
+    parser.add_argument("--num_surfaces", default=32, type=int)
     parser.add_argument("--batch_size", default=6, type=int)
-    parser.add_argument("--epochs", default=500, type=int)
-    parser.add_argument("-sm", "--sampling_method", default="FPS", help="You can use MDS if you use pytorch1.2.0")
+    parser.add_argument("--epochs", default=1000, type=int)
+    parser.add_argument("-sm", "--sampling_method", default="random", help="You can use MDS if you use pytorch1.2.0 or FPS")
     parser.add_argument("--optimizer", default="Adam", help="if you want to choose other optimization, you must change the code.")
     parser.add_argument("--lr", default=1e-4, help="learning rate", type=float)
     parser.add_argument("--dataset_dir", default="../PCN/data/BridgeCompletion")

@@ -65,11 +65,12 @@ def val_one_epoch(model, dataloader):
     with torch.no_grad():
         for i, points in enumerate(tqdm(dataloader, desc="validation")):
             comp = points[0]
-            comp = comp.permute(0, 2, 1)
             partial = points[1]
-            partial = partial.permute(0, 2, 1)
+
             # prediction
-            coarse, fine, loss_expantion= model(partial)
+            partial = partial.permute(0, 2, 1)
+            _, fine, _ = model(partial)
+            fine = fine.permute(0, 2, 1) # [B, N, 3]
             # get chamfer distance loss
             emd_fine, _ = emd_loss(fine, comp, eps, iters)
             emd_fine = torch.sqrt(emd_fine).mean(dim=1)
