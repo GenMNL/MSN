@@ -91,7 +91,7 @@ if __name__ == "__main__":
     # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
     # load model
     # you can't change here because this is same with train
-    model = MSN(args.emb_dim, args.num_output_points, args.num_surfaces, args.device).to(args.device)
+    model = MSN(args.emb_dim, args.num_output_points, args.num_surfaces, args.sampling_method).to(args.device)
     pth_path = os.path.join(args.save_dir, args.result_subset, args.year, args.date, args.select_result + "_weight.tar")
 
     checkpoint = torch.load(pth_path)

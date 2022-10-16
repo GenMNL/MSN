@@ -5,10 +5,9 @@ import numpy as np
 from module import *
 
 class STNkd(nn.Module):
-    def __init__(self, num_channels, device):
+    def __init__(self, num_channels):
         super(STNkd, self).__init__()
         self.num_channels = num_channels
-        self.device = device
 
         self.Conv_ReLU = nn.Sequential(
             SharedMLP(self.num_channels, 64),
@@ -26,6 +25,7 @@ class STNkd(nn.Module):
         )
 
     def forward(self, input):
+        device = input.device
         batchsize = input.shape[0]
 
         x = self.Conv_ReLU(input)
@@ -34,7 +34,7 @@ class STNkd(nn.Module):
 
         iden = np.eye(self.num_channels).flatten().astype(np.float32)
         iden = Variable(torch.from_numpy(iden)).view(1, self.num_channels**2).repeat(batchsize, 1)
-        iden = iden.to(self.device)
+        iden = iden.to(device)
 
         out = x + iden
         out = out.view(-1, self.num_channels, self.num_channels)

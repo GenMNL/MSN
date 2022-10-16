@@ -14,7 +14,7 @@ import emd_module as emd
 
 # ----------------------------------------------------------------------------------------
 # prepare subroutine for training one epoch
-def train_one_epoch(device, model, dataloader, alpha, optim):
+def train_one_epoch(model, dataloader, alpha, optim):
     model.train()
     # params for loss
     emd_loss = emd.emdModule()
@@ -52,7 +52,7 @@ def train_one_epoch(device, model, dataloader, alpha, optim):
     train_loss = float(train_loss)/count
     return train_loss
 
-def val_one_epoch(device, model, dataloader):
+def val_one_epoch(model, dataloader):
     model.eval()
     # params for loss
     emd_loss = emd.emdModule()
@@ -126,7 +126,7 @@ if __name__ == "__main__":
 
     #  >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
     # prepare model and optimaizer
-    model = MSN(args.emb_dim, args.num_output_points, args.num_surfaces, args.device).to(args.device)
+    model = MSN(args.emb_dim, args.num_output_points, args.num_surfaces, args.sampling_method).to(args.device)
     if args.optimizer == "Adam":
         optim = torch.optim.Adam(model.parameters(), lr=args.lr, betas=[0.9, 0.999])
     elif args.optimizer == "SGD":
@@ -151,8 +151,8 @@ if __name__ == "__main__":
             alpha = 1.0
 
         # get loss of one epoch
-        train_loss = train_one_epoch(args.device, model, train_dataloader, alpha, optim)
-        val_loss = val_one_epoch(args.device, model, val_dataloader)
+        train_loss = train_one_epoch(model, train_dataloader, alpha, optim)
+        val_loss = val_one_epoch(model, val_dataloader)
 
         writter.add_scalar("train_loss", train_loss, epoch)
         writter.add_scalar("validation_loss", val_loss, epoch)

@@ -4,18 +4,16 @@ from module import *
 from stn import *
 
 class Encoder(nn.Module):
-    def __init__(self, emb_dim, device):
+    def __init__(self, emb_dim):
         super(Encoder, self).__init__()
         self.emb_dim = emb_dim
-        self.device = device
-        self.to(device=device)
 
-        self.stn3d = STNkd(3, self.device).to(self.device)
+        self.stn3d = STNkd(3)
         self.MLP1 = nn.Sequential(
             SharedMLP(3, 64),
             SharedMLP(64, 64)
         )
-        self.stn64d = STNkd(64, self.device).to(self.device)
+        self.stn64d = STNkd(64)
         self.MLP2 = nn.Sequential(
             SharedMLP(64, 64),
             SharedMLP(64, 128),
