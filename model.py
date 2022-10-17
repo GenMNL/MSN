@@ -80,7 +80,7 @@ class MSN(nn.Module):
                 id = np.arange(x.shape[2])
                 id = np.random.permutation(id)
                 random_indices[b, :] = id[0:x_coarse.shape[2]]
-            random_indices = torch.tensor(random_indices, dtype=int, device=device)
+            random_indices = random_indices.astype(int)
             x = index2point_converter(x, random_indices)
 
         # This is decoder to get fine output
