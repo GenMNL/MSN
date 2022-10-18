@@ -3,6 +3,7 @@ runs/
 result/
 checkpoint/
 *.vtk
+*.ply
 
 # Byte-compiled / optimized / DLL files
 __pycache__/
