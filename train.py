@@ -59,7 +59,7 @@ def val_one_epoch(model, dataloader):
     emd_loss = emd.emdModule()
     eps = 0.004
     # iters = 3000
-    iters = 100
+    iters = 50
 
     val_loss = 0.0
     count = 0

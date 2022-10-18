@@ -33,8 +33,6 @@ def resize(ary, max, min):
 # for test
 def test(model, dataloader, save_dir):
     model.eval()
-    total_loss = 0.0
-    count =0
 
     with torch.no_grad():
         for i, points in enumerate(dataloader):
@@ -51,16 +49,16 @@ def test(model, dataloader, save_dir):
             fine = fine.permute(0, 2, 1) # [B, N, 3]
 
             comp = comp.detach().cpu().numpy()
-            comp = comp.reshape(args.num_coarse*(args.grid_size**2), -1)
+            comp = comp.reshape(-1, 3)
             comp = resize(comp, comp_max, comp_min)
             partial = partial.detach().cpu().numpy()
-            partial = partial.reshape(args.num_points, -1)
+            partial = partial.reshape(-1, 3)
             partial = resize(partial, partial_max, partial_min)
             fine = fine.detach().cpu().numpy()
-            fine = fine.reshape(args.num_coarse*(args.grid_size**2), -1)
+            fine = fine.reshape(-1, 3)
             fine = resize(fine, comp_max, comp_min)
             coarse = coarse.detach().cpu().numpy()
-            coarse = coarse.reshape(args.num_coarse, -1)
+            coarse = coarse.reshape(-1, 3)
             coarse = resize(coarse, comp_max, comp_min)
             export_ply(save_dir, i+1, "comp", comp) # save point cloud of comp
             export_ply(save_dir, i+1, "partial", partial) # save point cloud of partial
@@ -86,7 +84,7 @@ if __name__ == "__main__":
     test_dataset = MakeDataset(dataset_path=data_dir, subset=args.subset,
                                eval=args.result_eval, num_partial_pattern=0, device=args.device)
     test_dataloader = DataLoader(dataset=test_dataset, batch_size=1, # the batch size of test must be 1
-                                 collate_fn=OriginalCollate(args.num_points, args.num_comp, args.device))
+                                 collate_fn=OriginalCollate(args.num_partial, args.num_comp, args.device))
     len_dataset = len(test_dataset)
     # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
     # load model
