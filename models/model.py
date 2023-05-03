@@ -1,12 +1,12 @@
 import torch
 import torch.nn as nn
-from encoder import *
-from decoder import *
+from models.encoder import *
+from models.decoder import *
 import sys
 sys.path.append("./expansion_penalty")
 sys.path.append("./MDS")
-import expansion_penalty_module as expansion
-from module import farthest_point_sampling, index2point_converter
+import expansion_penalty.expansion_penalty_module as expansion
+from models.module import farthest_point_sampling, index2point_converter
 
 class MSN(nn.Module):
     def __init__(self, emb_dim, num_output_points, num_surfaces, sampling_method):

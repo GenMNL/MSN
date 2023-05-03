@@ -1,6 +1,6 @@
 import torch
 import torch.nn as nn
-from module import *
+from models.module import *
 
 # class for morphing based decoder
 class OneMorphingDecoder(nn.Module):

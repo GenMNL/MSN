@@ -6,9 +6,9 @@ from tqdm import tqdm
 import os
 import sys
 import datetime
-from data import *
-from options import make_parser
-from model import MSN
+from utils.data import *
+from utils.options import make_parser
+from models.model import MSN
 sys.path.append("./emd")
 import emd_module as emd
 
@@ -87,7 +87,7 @@ def val_one_epoch(model, dataloader):
 
 # ----------------------------------------------------------------------------------------
 if __name__ == "__main__":
-    #  >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+    # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
     # get options
     parser = make_parser()
     args = parser.parse_args()
@@ -104,30 +104,28 @@ if __name__ == "__main__":
         f.write('')
 
     writter = SummaryWriter()
-    #  >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
-
-    #  >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+    # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
     # make dataloader
     # data_dir = os.path.join(args.dataset_dir)
     train_dataset = MakeDataset(dataset_path=args.dataset_dir, subset=args.subset,
                                 eval="train", num_partial_pattern=4, device=args.device)
     train_dataloader = DataLoader(dataset=train_dataset, batch_size=args.batch_size,
                                   shuffle=True, drop_last=True,
-                                  collate_fn=OriginalCollate(args.num_partial, args.num_comp, args.device)) # DataLoader is iterable object.
+                                  collate_fn=OriginalCollate(args.device)) # DataLoader is iterable object.
 
     # validation data
     val_dataset = MakeDataset(dataset_path=args.dataset_dir, subset=args.subset,
                               eval="val", num_partial_pattern=4,device=args.device)
     val_dataloader = DataLoader(dataset=val_dataset, batch_size=2,
                                 shuffle=True, drop_last=True,
-                                collate_fn=OriginalCollate(args.num_partial, args.num_comp, args.device))
+                                collate_fn=OriginalCollate(args.device))
 
     # check of data in dataloader
     # for i, points in enumerate(tqdm(train_dataloader)):
         # print(f"complete points:{points[0].shape},  partial points:{points[1].shape}")
-    #  >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
-
-    #  >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+    # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
     # prepare model and optimaizer
     model = MSN(args.emb_dim, args.num_output_points, args.num_surfaces, args.sampling_method).to(args.device)
     if args.optimizer == "Adam":
@@ -136,19 +134,18 @@ if __name__ == "__main__":
         optim = torch.optim.SGD(model.parameters(), lr=args.lr, momentum=0.6)
 
     # lr_schdual = torch.optim.lr_scheduler.StepLR(optim, step_size=int(args.epochs/4), gamma=0.7)
-    #  >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
-
-    #  >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+    # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
     # main loop
     best_loss = np.inf
     for epoch in tqdm(range(1, args.epochs+1), desc="main loop"):
 
         # determin the ration of loss
-        if epoch < 50:
+        if epoch < 40:
             alpha = 0.01
-        elif epoch < 100:
+        elif epoch < 800:
             alpha = 0.1
-        elif epoch < 200:
+        elif epoch < 120:
             alpha = 0.5
         else:
             alpha = 1.0
