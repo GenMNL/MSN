@@ -1,6 +1,7 @@
 import torch
 import torch.nn as nn
 from torch.utils.data import DataLoader
+import torch.multiprocessing as multiprocessing
 from tensorboardX import SummaryWriter
 from tqdm import tqdm
 import os
@@ -25,7 +26,7 @@ def train_one_epoch(model, dataloader, alpha, optim):
     train_loss = 0.0
     count = 0
 
-    for i, points in enumerate(tqdm(dataloader, desc="train")):
+    for _, points in enumerate(tqdm(dataloader, desc="train")):
         comp = points[0]
         partial = points[1]
 
@@ -65,7 +66,7 @@ def val_one_epoch(model, dataloader):
     count = 0
 
     with torch.no_grad():
-        for i, points in enumerate(tqdm(dataloader, desc="validation")):
+        for _, points in enumerate(tqdm(dataloader, desc="validation")):
             comp = points[0]
             partial = points[1]
 
@@ -98,7 +99,8 @@ if __name__ == "__main__":
     save_dir = os.path.join(args.save_dir, args.subset, str(dt_now.year), save_date)
     save_normal_path = os.path.join(save_dir, "normal_weight.tar")
     save_best_path = os.path.join(save_dir, "best_weight.tar")
-    os.mkdir(save_dir)
+    if not os.path.exists(save_dir):
+        os.mkdir(save_dir)
     # make condition file
     with open(os.path.join(save_dir, "conditions.txt"), 'w') as f:
         f.write('')
@@ -109,16 +111,16 @@ if __name__ == "__main__":
     # make dataloader
     # data_dir = os.path.join(args.dataset_dir)
     train_dataset = MakeDataset(dataset_path=args.dataset_dir, subset=args.subset,
-                                eval="train", num_partial_pattern=4, device=args.device)
+                                eval="train", num_partial_pattern=1, device=args.device)
     train_dataloader = DataLoader(dataset=train_dataset, batch_size=args.batch_size,
-                                  shuffle=True, drop_last=True,
+                                  shuffle=True, drop_last=True, num_workers=4,
                                   collate_fn=OriginalCollate(args.device)) # DataLoader is iterable object.
 
     # validation data
     val_dataset = MakeDataset(dataset_path=args.dataset_dir, subset=args.subset,
-                              eval="val", num_partial_pattern=4,device=args.device)
-    val_dataloader = DataLoader(dataset=val_dataset, batch_size=2,
-                                shuffle=True, drop_last=True,
+                              eval="val", num_partial_pattern=1,device=args.device)
+    val_dataloader = DataLoader(dataset=val_dataset, batch_size=10,
+                                shuffle=True, drop_last=True, num_workers=4,
                                 collate_fn=OriginalCollate(args.device))
 
     # check of data in dataloader
@@ -133,6 +135,9 @@ if __name__ == "__main__":
     elif args.optimizer == "SGD":
         optim = torch.optim.SGD(model.parameters(), lr=args.lr, momentum=0.6)
 
+    if multiprocessing.get_start_method() == 'fork':
+        multiprocessing.set_start_method('spawn', force=True)
+        print("{} setup done".format(multiprocessing.get_start_method()))
     # lr_schdual = torch.optim.lr_scheduler.StepLR(optim, step_size=int(args.epochs/4), gamma=0.7)
     # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
     # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -141,11 +146,11 @@ if __name__ == "__main__":
     for epoch in tqdm(range(1, args.epochs+1), desc="main loop"):
 
         # determin the ration of loss
-        if epoch < 40:
+        if epoch < 10:
             alpha = 0.01
-        elif epoch < 800:
+        elif epoch < 20:
             alpha = 0.1
-        elif epoch < 120:
+        elif epoch < 30:
             alpha = 0.5
         else:
             alpha = 1.0

@@ -1,6 +1,6 @@
 FROM nvidia/cuda:10.0-cudnn7-devel-ubuntu18.04
 
-RUN sh -c "echo 'nameserver 192.168.11.1' > /etc/resolv.conf"
+#RUN sh -c "echo 'nameserver 192.168.11.1' > /etc/resolv.conf"
 RUN apt-get update
 RUN apt-get install -y git
 RUN apt-get install -y libgl1-mesa-dev
